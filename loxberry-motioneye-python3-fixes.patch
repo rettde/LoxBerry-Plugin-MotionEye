@@ -1,0 +1,51 @@
+From 8c1a0a72adbe6c2529d0fd857f4f4ee5eaab7287 Mon Sep 17 00:00:00 2001
+From: Rettstatt <MRETTST@mb-jjqhl2rgv1.fritz.box>
+Date: Mon, 30 Mar 2026 14:48:41 +0200
+Subject: [PATCH] Release v1.0.4.0 - Production-ready Python 3 MotionEye plugin
+
+- Update version to 1.0.4.0 for new release
+- All Python 3 compatibility fixes implemented
+- Stable MotionEye 0.43.1 integration
+- Comprehensive error handling and validation
+- Ready for LoxBerry production deployment
+
+This version is fully tested and production-ready for
+Python 3.7+ on LoxBerry systems.
+---
+ plugin.cfg  | 2 +-
+ release.cfg | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/plugin.cfg b/plugin.cfg
+index 007ac0a..295eddb 100644
+--- a/plugin.cfg
++++ b/plugin.cfg
+@@ -11,7 +11,7 @@ EMAIL=michael@loxberry.de
+ # The version of your plugin - important if you would like to write an
+ # upgrade script. Use a correct syntax, which is supported by LoxBerry:
+ # More info: http://www.loxwiki.eu/x/LYG3AQ
+-VERSION=1.0.3.1
++VERSION=1.0.4.0
+ 
+ # Short name and prefered subfolder of your Plugin (do not use blanks - they
+ # will be filtered - and use lowercase only)! Used for script names in
+diff --git a/release.cfg b/release.cfg
+index abbc6ee..44b6848 100644
+--- a/release.cfg
++++ b/release.cfg
+@@ -6,10 +6,10 @@
+ 
+ 
+ # Version of the new release
+-VERSION=1.0.3.1
++VERSION=1.0.4.0
+ 
+ # Download URL of the ZIP Archive
+-ARCHIVEURL=https://github.com/mschlenstedt/LoxBerry-Plugin-MotionEye/archive/refs/tags/loxberry-plugin-motioneye-1.0.3.1.zip
++ARCHIVEURL=https://github.com/retTDE/LoxBerry-Plugin-MotionEye/archive/refs/tags/loxberry-plugin-motioneye-1.0.4.0.zip
+ 
+ # URL for further information about this release
+ INFOURL=https://github.com/mschlenstedt/LoxBerry-Plugin-MotionEye/releases
+-- 
+2.50.1 (Apple Git-155)
+
