@@ -46,6 +46,22 @@ PCONFIG=$LBPCONFIG/$PDIR
 PSBIN=$LBPSBIN/$PDIR
 PBIN=$LBPBIN/$PDIR
 
+# Check Python 3 availability and version
+if ! command -v python3 &> /dev/null; then
+  echo "<ERROR> Python 3 is required but not installed"
+  exit 2
+fi
+
+PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
+REQUIRED_VERSION="3.7"
+
+if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$PYTHON_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
+  echo "<ERROR> Python $REQUIRED_VERSION or higher is required. Found Python $PYTHON_VERSION"
+  exit 2
+fi
+
+echo "<INFO> Python 3 version check passed: $PYTHON_VERSION"
+
 # Motion
 RELEASETAG="release-4.7.1"
 VERSION="4.7.1-1"
@@ -69,22 +85,50 @@ fi
 if [ $ARCH != "" ]; then
   cd /tmp
   DOWNLOADURL="${URL}/${DEBIANVERSION}_motion_${VERSION}_${ARCH}.deb"
-  wget $DOWNLOADURL
-  dpkg -i $DEBIANVERSION_motion_*.deb
-  rm $DEBIANVERSION_motion_*.deb
+  echo "<INFO> Downloading Motion from: $DOWNLOADURL"
+  if wget $DOWNLOADURL; then
+    echo "<INFO> Installing Motion package..."
+    if dpkg -i $DEBIANVERSION_motion_*.deb; then
+      echo "<OK> Motion installed successfully."
+      rm $DEBIANVERSION_motion_*.deb
+    else
+      echo "<ERROR> Motion installation failed. Trying to fix dependencies..."
+      apt-get -f install -y
+      if dpkg -i $DEBIANVERSION_motion_*.deb; then
+        echo "<OK> Motion installed successfully after dependency fix."
+        rm $DEBIANVERSION_motion_*.deb
+      else
+        echo "<FAIL> Motion installation failed completely."
+        rm $DEBIANVERSION_motion_*.deb
+        exit 2
+      fi
+    fi
+  else
+    echo "<ERROR> Failed to download Motion from: $DOWNLOADURL"
+    exit 2
+  fi
 else
   echo "<ERROR> Cannot download motion - unknown architecture"
+  exit 2
 fi
 
 echo "<INFO> Installing motioneye via pip..."
-yes | python3 -m pip install --pre motioneye
-
-INSTALLED_ME=$(python3 -m pip list --format=columns | grep "motioneye" | grep -v grep | wc -l)
-if [ ${INSTALLED_ME} -ne "0" ]; then
-	echo "<OK> MotionEye installed successfully."
+# Check if we need to use break-system-packages flag (for newer Debian versions)
+if [ -f /usr/lib/python3*/EXTERNALLY-MANAGED ] 2>/dev/null; then
+  echo "<INFO> Detected externally managed Python environment, using break-system-packages flag"
+  if python3 -m pip install motioneye==0.43.1 --break-system-packages; then
+    echo "<OK> MotionEye installed successfully."
+  else
+    echo "<FAIL> MotionEye could not be installed."
+    exit 2;
+  fi
 else
-	echo "<FAIL> MotionEye could not be installed."
-	exit 2;
+  if python3 -m pip install motioneye==0.43.1; then
+    echo "<OK> MotionEye installed successfully."
+  else
+    echo "<FAIL> MotionEye could not be installed."
+    exit 2;
+  fi
 fi 
 
 echo "<INFO> Creating /etc/motioneye..."
@@ -98,7 +142,7 @@ usermod -a -G video loxberry
 
 echo "<INFO> Installing MotionEye Servicefile..."
 cp $PTEMPL/motioneye.systemd-unit-local /etc/systemd/system/motioneye.service
-# If Shebang is still /usr/bin/python, change it to /usr/bin/python2
+# If Shebang is still /usr/bin/python, change it to /usr/bin/python3
 sed -i 's/^#!\(.*\)python$/#!\1python3/' /usr/local/bin/meyectl
 systemctl daemon-reload
 systemctl enable motioneye
